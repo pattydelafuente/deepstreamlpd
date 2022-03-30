@@ -76,3 +76,21 @@ output-blob-names=conv2d_bbox;conv2d_cov/Sigmoid
 pre-cluster-threshold=0.2
 eps=0.2
 group-threshold=1
+
+
+# Per class configuration
+# car
+[class-attrs-0]
+pre-cluster-threshold=0.2
+
+# bike
+[class-attrs-1]
+pre-cluster-threshold=1.2
+
+# person
+[class-attrs-2]
+pre-cluster-threshold=0.2
+
+# traffic_sign
+[class-attrs-3]
+pre-cluster-threshold=1.2

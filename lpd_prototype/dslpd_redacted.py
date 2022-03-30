@@ -100,50 +100,72 @@ def osd_sink_pad_buffer_probe(pad,info,u_data):
             if(obj_meta.unique_component_id == PRIMARY_DETECTOR_UID):
                 
                 obj_counter[obj_meta.class_id] += 1
+                if(obj_meta.class_id == PGIE_CLASS_ID_PERSON ):
+                    obj_meta.rect_params.border_width = 0
+                    obj_meta.rect_params.has_bg_color = 1
+                    obj_meta.rect_params.bg_color.red = 1.0
+                    obj_meta.rect_params.bg_color.green = 0.0
+                    obj_meta.rect_params.bg_color.blue = 0.0
+                    obj_meta.rect_params.bg_color.alpha = 1
+                    
+                else:
+                    obj_meta.rect_params.border_width = 0
+                    obj_meta.rect_params.has_bg_color = 0
+                    #obj_meta.rect_params.bg_color.red = 1.0
+                    #obj_meta.rect_params.bg_color.green = 0.0
+                    #obj_meta.rect_params.bg_color.blue = 0.0
+                    #obj_meta.rect_params.bg_color.alpha = 1
+                   
                 
             if(obj_meta.unique_component_id == SECONDARY_DETECTOR_UID):
                 #print("secondary_detector is working")
                 #redact the roi of the license plates
-                obj_meta.rect_params.border_color.set(1.0,0.0,0.0,1.0)
+                obj_meta.rect_params.border_width = 0
+                #obj_meta.rect_params.border_color.set(1.0,0.0,0.0,1.0)
                 obj_meta.rect_params.has_bg_color=1
-                obj_meta.rect_params.bg_color.set(1.0,0.0,0.0,0.5)
+                obj_meta.rect_params.bg_color.red = 0.0
+                obj_meta.rect_params.bg_color.green = 1.0
+                obj_meta.rect_params.bg_color.blue = 0.0
+                obj_meta.rect_params.bg_color.alpha = 1
                 
             
             try: 
                 l_obj=l_obj.next
             except StopIteration:
                 break
+#nvosd.set_property('display_text',0)
 
         # Acquiring a display meta object. The memory ownership remains in
         # the C code so downstream plugins can still access it. Otherwise
         # the garbage collector will claim it when this probe function exits.
-        display_meta=pyds.nvds_acquire_display_meta_from_pool(batch_meta)
-        display_meta.num_labels = 1
-        py_nvosd_text_params = display_meta.text_params[0]
+        #display_meta=pyds.nvds_acquire_display_meta_from_pool(batch_meta)
+        #display_meta.num_labels = 1
+        #display_meta.num_labels = 0
+       # py_nvosd_text_params = display_meta.text_params[0]
         # Setting display text to be shown on screen
         # Note that the pyds module allocates a buffer for the string, and the
         # memory will not be claimed by the garbage collector.
         # Reading the display_text field here will return the C address of the
         # allocated string. Use pyds.get_string() to get the string content.
-        py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={} ".format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON])
+       # py_nvosd_text_params.display_text = "Frame Number={} Number of Objects={} Vehicle_count={} Person_count={} #".format(frame_number, num_rects, obj_counter[PGIE_CLASS_ID_VEHICLE], obj_counter[PGIE_CLASS_ID_PERSON])
 
         # Now set the offsets where the string should appear
-        py_nvosd_text_params.x_offset = 10
-        py_nvosd_text_params.y_offset = 12
+     #   py_nvosd_text_params.x_offset = 10
+      #  py_nvosd_text_params.y_offset = 12
 
         # Font , font-color and font-size
-        py_nvosd_text_params.font_params.font_name = "Serif"
-        py_nvosd_text_params.font_params.font_size = 10
+   #     py_nvosd_text_params.font_params.font_name = "Serif"
+     #   py_nvosd_text_params.font_params.font_size = 10
         # set(red, green, blue, alpha); set to White
-        py_nvosd_text_params.font_params.font_color.set(1.0, 1.0, 1.0, 1.0)
+      #  py_nvosd_text_params.font_params.font_color.set(1.0, 1.0, 1.0, 1.0)
 
         # Text background color
-        py_nvosd_text_params.set_bg_clr = 1
+       # py_nvosd_text_params.set_bg_clr = 1
         # set(red, green, blue, alpha); set to Black
-        py_nvosd_text_params.text_bg_clr.set(0.0, 0.0, 0.0, 1.0)
+        #py_nvosd_text_params.text_bg_clr.set(0.0, 0.0, 0.0, 1.0)
         # Using pyds.get_string() to get display_text as string
-        print(pyds.get_string(py_nvosd_text_params.display_text))
-        pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
+       # print(pyds.get_string(py_nvosd_text_params.display_text))
+       # pyds.nvds_add_display_meta_to_frame(frame_meta, display_meta)
         try:
             l_frame=l_frame.next
         except StopIteration:
@@ -172,22 +194,22 @@ def osd_sink_pad_buffer_probe(pad,info,u_data):
                     pPastFrameObjBatch = pyds.NvDsPastFrameObjBatch.cast(user_meta.user_meta_data)
                 except StopIteration:
                     break
-                for trackobj in pyds.NvDsPastFrameObjBatch.list(pPastFrameObjBatch):
-                    print("streamId=",trackobj.streamID)
-                    print("surfaceStreamID=",trackobj.surfaceStreamID)
-                    for pastframeobj in pyds.NvDsPastFrameObjStream.list(trackobj):
-                        print("numobj=",pastframeobj.numObj)
-                        print("uniqueId=",pastframeobj.uniqueId)
-                        print("classId=",pastframeobj.classId)
-                        print("objLabel=",pastframeobj.objLabel)
-                        for objlist in pyds.NvDsPastFrameObjList.list(pastframeobj):
-                            print('frameNum:', objlist.frameNum)
-                            print('tBbox.left:', objlist.tBbox.left)
-                            print('tBbox.width:', objlist.tBbox.width)
-                            print('tBbox.top:', objlist.tBbox.top)
-                            print('tBbox.right:', objlist.tBbox.height)
-                            print('confidence:', objlist.confidence)
-                            print('age:', objlist.age)
+               # for trackobj in pyds.NvDsPastFrameObjBatch.list(pPastFrameObjBatch):
+                    #print("streamId=",trackobj.streamID)
+                    #print("surfaceStreamID=",trackobj.surfaceStreamID)
+                   # for pastframeobj in pyds.NvDsPastFrameObjStream.list(trackobj):
+                       # print("numobj=",pastframeobj.numObj)
+                       # print("uniqueId=",pastframeobj.uniqueId)
+                        #print("classId=",pastframeobj.classId)
+                        #print("objLabel=",pastframeobj.objLabel)
+                        #for objlist in pyds.NvDsPastFrameObjList.list(pastframeobj):
+                            #print('frameNum:', objlist.frameNum)
+                            #print('tBbox.left:', objlist.tBbox.left)
+                            #print('tBbox.width:', objlist.tBbox.width)
+                           # print('tBbox.top:', objlist.tBbox.top)
+                           # print('tBbox.right:', objlist.tBbox.height)
+                           # print('confidence:', objlist.confidence)
+                            # print('age:', objlist.age)
             try:
                 l_user=l_user.next
             except StopIteration:
@@ -324,6 +346,7 @@ def main(args):
     #Set properties of pgie and sgie
     pgie.set_property('config-file-path', "dslpd_pgie_config.txt")
     pgie.set_property('unique-id', PRIMARY_DETECTOR_UID)
+   
     #sgie1.set_property('config-file-path', "dslpd_sgie1_config.txt")
     #sgie2.set_property('config-file-path', "dslpd_sgie2_config.txt")
     sgie1.set_property('config-file-path', "lpd_us_config.txt")
@@ -331,6 +354,8 @@ def main(args):
     sgie1.set_property('process-mode', 2)
 #     sgie3.set_property('config-file-path', "dstest2_sgie3_config.txt")
 
+    #this line disables all the detected object labels, comment out if you want to enable them
+    nvosd.set_property('display-text',0)
     #Set properties of tracker
     config = configparser.ConfigParser()
     config.read('dslpd_tracker_config.txt')
@@ -481,4 +506,3 @@ def parse_args():
 if __name__ == '__main__':
     parse_args()
     sys.exit(main(sys.argv))
-
